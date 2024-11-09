@@ -5,14 +5,25 @@ from bson.json_util import dumps
 from datetime import datetime
 import requests
 import json
+import os
+import logging
 
 # Initialize Flask app and MongoDB connection
 app = Flask(__name__)
-client = MongoClient("mongodb://localhost:27017/")
+mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+client = MongoClient(mongo_uri)
+#client = MongoClient("mongodb://localhost:27017/")
 db = client["appointment_system"]
 patients_collection = db["patients"]
 doctors_collection = db["doctors"]
 appointments_collection = db["appointments"]
+
+
+@app.route('/')
+def hello_world():
+    logging.info('Hello World request received')
+    return 'Hello, World!'
+
 
 # Helper function to convert MongoDB ObjectId to JSON serializable format
 def json_serializable(obj):
@@ -95,6 +106,8 @@ def notify_prepare(email, date, time, patient_name, doctor_name, operation, old_
     if operation == "reschedule_appointment":
         data["old_date"] = old_date
         data["old_time"] = old_time
+        data["new_date"] = date
+        data["new_time"] = time
 
     # Send the POST request
     response = post_notify_request(url, headers, data)
@@ -152,7 +165,7 @@ def book_appointment():
                 {"_id": doctor["_id"]},
                 {"$set": {"availability": doctor["availability"]}}
             )
-            notify_prepare(patient["email"], date, time, patient["name"], doctor["name"], "new_appointment")
+            notify_prepare(patient["email"], date, time, patient["name"], doctor["name"], "new_appointment", " ", " ")
             return jsonify(appointment), 201
         else:
             return jsonify({"error": "Cannot book past appointments"}), 400
@@ -194,7 +207,7 @@ def cancel_appointments_for_doctor(doctor_id, date):
         appointment_time = appointment["appointment_time"]
         patient_name = appointment["patient_name"]
         doctor_name = appointment["doctor_name"]
-        notify_prepare(patient_email, appointment_date, appointment_time, patient_name, doctor_name, "cancellation_appointment")
+        notify_prepare(patient_email, appointment_date, appointment_time, patient_name, doctor_name, "cancellation_appointment" , " ", " ")
 
     return jsonify({"message": f"Cancelled {result.deleted_count} appointments for Dr. {doctor_id} on {date}"}), 200
 
@@ -234,7 +247,7 @@ def cancel_patient_appointment():
     patient_email = "2023mt03164@wilp.bits-pilani.ac.in"
     patient_name = appointment["patient_name"]
     doctor_name = appointment["doctor_name"]
-    notify_prepare(patient_email, appointment_date, appointment_time, patient_name, doctor_name, "cancellation_appointment")
+    notify_prepare(patient_email, appointment_date, appointment_time, patient_name, doctor_name, "cancellation_appointment", " ", " ")
 
     return jsonify({"message": "Appointment cancelled successfully"}), 200
 
@@ -334,4 +347,4 @@ def handle_invalid_usage(error):
 
 # Run the Flask app
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=6000)
