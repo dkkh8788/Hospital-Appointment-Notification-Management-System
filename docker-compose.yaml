@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - /Users/deepak/WORK/Scalable/database/data/db:/data/db
+
+  app:
+    build: .
+    ports:
+      - 6000:6000
+    depends_on:
+      - db
+    environment:
+      MONGO_URI: mongodb://db:27017
