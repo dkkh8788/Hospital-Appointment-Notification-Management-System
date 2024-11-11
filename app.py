@@ -7,6 +7,7 @@ import requests
 import json
 import os
 import logging
+import os
 
 # Initialize Flask app and MongoDB connection
 app = Flask(__name__)
