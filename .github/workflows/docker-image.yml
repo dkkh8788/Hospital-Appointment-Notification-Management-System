@@ -15,15 +15,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag bits2023mt03164/appointment_management:$(date +%s)
+      run: docker build . --file Dockerfile --tag dkkh8788/appointment_management:$(date +%s)
 
     - name: Setup dockerbuildx
       uses: docker/setup-buildx-action@v1
 
     - name: Login Docker Hub
-      run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Build and Push the image to DockerHub
       run: |
-        docker build -t bits2023mt03164/appointment_management:latest .
-        docker push bits2023mt03164/appointment_management:latest
+        docker build -t dkkh8788/appointment_management:latest .
+        docker push dkkh8788/appointment_management:latest
